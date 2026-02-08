@@ -1,99 +1,81 @@
 #ifndef LAB_SCENE_H
 #define LAB_SCENE_H
 
-#include "objects.h"
-#include "shader.h"
 #include <glm/glm.hpp>
+#include "shader.h"
+#include "objects.h"
 
-const float LAB_WIDTH = 12.0f;
-const float LAB_DEPTH = 10.0f;
-const float LAB_HEIGHT = 4.0f;
+// Room dimensions
+const float ROOM_WIDTH = 8.0f;
+const float ROOM_HEIGHT = 3.5f;
+const float ROOM_DEPTH = 12.0f;
 
-struct LabState {
-    bool fanOn = false;
-    float fanRotation = 0.0f;
-    bool lightOn = true;
-    float doorAngle = 0.0f;
+// Scene state
+struct SceneState {
+    bool pointLightsOn = true;
+    bool ambientOn = true;
+    bool diffuseOn = true;
+    bool specularOn = true;
+    
+    // Door/Window animation
     bool doorOpening = false;
-    float windowOpen = 0.0f;
     bool windowOpening = false;
+    float doorOpenAmount = 0.0f;
+    float windowOpenAmount = 0.0f;
 };
 
-void updateLabState(LabState& state, float deltaTime) {
-    // Fan rotation
-    if (state.fanOn) {
-        state.fanRotation += 200.0f * deltaTime;
-        if (state.fanRotation > 360.0f) state.fanRotation -= 360.0f;
-    }
+void updateSceneState(SceneState& state, float deltaTime) {
+    float speed = 1.5f;
+    if (state.doorOpening && state.doorOpenAmount < 1.0f)
+        state.doorOpenAmount += speed * deltaTime;
+    else if (!state.doorOpening && state.doorOpenAmount > 0.0f)
+        state.doorOpenAmount -= speed * deltaTime;
+    state.doorOpenAmount = glm::clamp(state.doorOpenAmount, 0.0f, 1.0f);
     
-    // Door animation
-    if (state.doorOpening && state.doorAngle < 90.0f) {
-        state.doorAngle += 60.0f * deltaTime;
-        if (state.doorAngle > 90.0f) state.doorAngle = 90.0f;
-    } else if (!state.doorOpening && state.doorAngle > 0.0f) {
-        state.doorAngle -= 60.0f * deltaTime;
-        if (state.doorAngle < 0.0f) state.doorAngle = 0.0f;
-    }
-    
-    // Window animation
-    if (state.windowOpening && state.windowOpen < 1.0f) {
-        state.windowOpen += 1.5f * deltaTime;
-        if (state.windowOpen > 1.0f) state.windowOpen = 1.0f;
-    } else if (!state.windowOpening && state.windowOpen > 0.0f) {
-        state.windowOpen -= 1.5f * deltaTime;
-        if (state.windowOpen < 0.0f) state.windowOpen = 0.0f;
-    }
+    if (state.windowOpening && state.windowOpenAmount < 1.0f)
+        state.windowOpenAmount += speed * deltaTime;
+    else if (!state.windowOpening && state.windowOpenAmount > 0.0f)
+        state.windowOpenAmount -= speed * deltaTime;
+    state.windowOpenAmount = glm::clamp(state.windowOpenAmount, 0.0f, 1.0f);
 }
 
-void drawLabScene(Shader& shader, glm::mat4 identity, LabState& state) {
-    shader.use();
-    shader.setBool("lightOn", state.lightOn);
-    
-    // Floor and ceiling
-    drawFloor(shader, identity, LAB_WIDTH, LAB_DEPTH);
-    drawCeiling(shader, identity, LAB_WIDTH, LAB_DEPTH, LAB_HEIGHT);
+void drawBarracksScene(Shader& shader, glm::mat4 parent, SceneState& state) {
+    // Floor
+    drawFloor(shader, parent, ROOM_WIDTH, ROOM_DEPTH);
     
     // Walls
-    drawWalls(shader, identity, LAB_WIDTH, LAB_HEIGHT, LAB_DEPTH, state.doorAngle);
+    drawWalls(shader, parent, ROOM_WIDTH, ROOM_HEIGHT, ROOM_DEPTH);
     
-    // Whiteboard on front wall
-    drawWhiteboard(shader, identity, LAB_WIDTH / 2.0f, 1.5f, 0.15f);
+    // Ceiling
+    drawCeiling(shader, parent, ROOM_WIDTH, ROOM_HEIGHT, ROOM_DEPTH);
     
-    // Door on back wall
-    float doorX = (LAB_WIDTH - 1.0f) / 2.0f;
-    drawDoor(shader, identity, doorX, 0.0f, LAB_DEPTH - 0.12f, state.doorAngle);
+    // Door (back wall center)
+    float doorX = (ROOM_WIDTH - 1.0f) / 2.0f;
+    float doorAngle = state.doorOpenAmount * 90.0f;
+    drawDoor(shader, parent, doorX, 0.0f, ROOM_DEPTH - 0.2f, doorAngle);
     
-    // Windows on left wall (2 windows) - rotated 90 degrees
-    drawWindow(shader, identity, 0.12f, 1.5f, LAB_DEPTH * 0.3f, state.windowOpen, 90.0f);
-    drawWindow(shader, identity, 0.12f, 1.5f, LAB_DEPTH * 0.7f, state.windowOpen, 90.0f);
+    // Window (left wall)
+    drawWindow(shader, parent, 0.0f, 1.2f, ROOM_DEPTH * 0.3f, state.windowOpenAmount);
     
-    // Windows on right wall (2 windows) - rotated -90 degrees to face into room
-    drawWindow(shader, identity, LAB_WIDTH - 0.12f, 1.5f, LAB_DEPTH * 0.3f, state.windowOpen, -90.0f);
-    drawWindow(shader, identity, LAB_WIDTH - 0.12f, 1.5f, LAB_DEPTH * 0.7f, state.windowOpen, -90.0f);
-    
-    // Ceiling fan
-    drawFan(shader, identity, LAB_WIDTH / 2.0f, LAB_HEIGHT - 0.1f, LAB_DEPTH / 2.0f, state.fanRotation);
-    
-    // Lights (2 lights)
-    drawLight(shader, identity, LAB_WIDTH * 0.3f, LAB_HEIGHT - 0.05f, LAB_DEPTH / 2.0f, state.lightOn);
-    drawLight(shader, identity, LAB_WIDTH * 0.7f, LAB_HEIGHT - 0.05f, LAB_DEPTH / 2.0f, state.lightOn);
-    
-    // Desks with chairs and PCs (3 rows x 5 desks)
-    float startX = 1.5f;
-    float startZ = 2.0f;
-    float deskSpacingX = 2.0f;
-    float rowSpacingZ = 2.5f;
-    
-    for (int row = 0; row < 3; row++) {
-        for (int col = 0; col < 5; col++) {
-            float x = startX + col * deskSpacingX;
-            float z = startZ + row * rowSpacingZ;
-            
-            drawDesk(shader, identity, x, 0.0f, z);
-            drawChair(shader, identity, x, 0.0f, z + 0.5f);
-            drawPC(shader, identity, x, 0.75f, z - 0.15f);
-        }
+    // Bunk beds - Left side (3 beds)
+    for (int i = 0; i < 3; i++) {
+        float zPos = 0.5f + i * 3.5f;
+        drawBunkBed(shader, parent, 0.3f, 0.0f, zPos);
     }
+    
+    // Bunk beds - Right side (3 beds)
+    for (int i = 0; i < 3; i++) {
+        float zPos = 0.5f + i * 3.5f;
+        drawBunkBed(shader, parent, ROOM_WIDTH - 1.3f, 0.0f, zPos);
+    }
+    
+    // Stove (center-back)
+    drawStove(shader, parent, ROOM_WIDTH / 2.0f, 0.0f, ROOM_DEPTH - 2.5f);
+    
+    // Hanging lamps
+    float lampY = ROOM_HEIGHT - 0.1f;
+    drawHangingLamp(shader, parent, ROOM_WIDTH / 3.0f, lampY, ROOM_DEPTH / 3.0f);
+    drawHangingLamp(shader, parent, 2.0f * ROOM_WIDTH / 3.0f, lampY, 2.0f * ROOM_DEPTH / 3.0f);
 }
 
 #endif

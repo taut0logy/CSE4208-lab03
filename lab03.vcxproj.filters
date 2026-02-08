@@ -23,22 +23,33 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="basic_camera.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="shader.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cube.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lab_scene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="objects.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pointLight.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="fragmentShader.fs">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="fragmentShaderV2.fs">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="vertexShader.vs">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="fragmentShaderPhong.fs" />
+    <None Include="vertexShaderPhong.vs" />
   </ItemGroup>
 </Project>
