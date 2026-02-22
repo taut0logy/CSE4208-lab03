@@ -95,6 +95,9 @@ void drawBarracksScene(Shader& shader, glm::mat4 parent, SceneState& state) {
     // ---- Exterior ----
     drawExterior(shader, parent, ROOM_WIDTH, ROOM_DEPTH);
 
+    // ---- Showcase: textured cylinder + sphere ----
+    drawShowcaseObjects(shader, parent, ROOM_WIDTH, ROOM_DEPTH);
+
     // Street lamps (just visual objects; spot light is set up in main.cpp)
     drawStreetLamp(shader, parent, SLAMP1_POS.x - 0.55f, 0.0f, SLAMP1_POS.z - 0.20f);
     drawStreetLamp(shader, parent, SLAMP2_POS.x - 0.55f, 0.0f, SLAMP2_POS.z - 0.20f);

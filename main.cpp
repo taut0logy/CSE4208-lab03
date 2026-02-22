@@ -92,7 +92,7 @@ SpotLight spotLight0(0,
     glm::vec3(1.00f, 0.40f, 0.02f),     // diffuse (orange fire)
     glm::vec3(1.00f, 0.60f, 0.10f),     // specular
     1.0f, 0.20f, 0.10f,
-    18.0f, 28.0f);
+    25.0f);
 
 //   [1] = street lamp 1 – points straight down from head
 SpotLight spotLight1(1,
@@ -102,7 +102,7 @@ SpotLight spotLight1(1,
     glm::vec3(0.90f, 0.88f, 0.70f),
     glm::vec3(1.00f, 0.98f, 0.82f),
     1.0f, 0.10f, 0.05f,
-    20.0f, 30.0f);
+    25.0f);
 
 //   [2] = street lamp 2 – points straight down from head
 SpotLight spotLight2(2,
@@ -112,7 +112,7 @@ SpotLight spotLight2(2,
     glm::vec3(0.90f, 0.88f, 0.70f),
     glm::vec3(1.00f, 0.98f, 0.82f),
     1.0f, 0.10f, 0.05f,
-    20.0f, 30.0f);
+    25.0f);
 
 //   [3] = dummy (all zeros, required since shader loops NR_SPOT_LIGHTS=4)
 SpotLight spotLight3(3,
@@ -120,7 +120,7 @@ SpotLight spotLight3(3,
     glm::vec3(0.0f,-1.0f,0.0f),
     glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(0.0f),
     1.0f, 0.0f, 0.0f,
-    0.0f, 0.001f);
+    0.0f);
 
 // ---- Timing ----
 float deltaTime = 0.0f, lastFrame = 0.0f;
@@ -156,6 +156,13 @@ int main()
     initCubeBuffers();
     initCylinderBuffers();
     initSphereBuffers();
+    initTextures();
+
+    // Set default texture uniforms
+    shader.use();
+    shader.setBool("useTexture", false);
+    shader.setFloat("texRepeat", 1.0f);
+    shader.setInt("texture1", 0);
 
     printControls();
 

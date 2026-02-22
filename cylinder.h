@@ -16,6 +16,7 @@ unsigned int cylinderVAO = 0, cylinderVBO = 0, cylinderEBO = 0;
 int cylinderIndexCount = 0;
 
 // Generates a unit cylinder (radius=0.5, height=1) centered at base (0,0,0) to (0,1,0)
+// Vertex format: pos(3) + normal(3) + texcoord(2) = 8 floats
 void initCylinderBuffers(int sectors = 36)
 {
     std::vector<float> vertices;
@@ -34,14 +35,17 @@ void initCylinderBuffers(int sectors = 36)
         float z = radius * sinf(angle);
         float nx = cosf(angle);
         float nz = sinf(angle);
+        float u = (float)i / (float)sectors;
 
         // Bottom ring
-        vertices.push_back(x + 0.5f); // shift so cylinder spans [0,1] in x and z
+        vertices.push_back(x + 0.5f);
         vertices.push_back(0.0f);
         vertices.push_back(z + 0.5f);
         vertices.push_back(nx);
         vertices.push_back(0.0f);
         vertices.push_back(nz);
+        vertices.push_back(u);    // u
+        vertices.push_back(0.0f); // v = bottom
 
         // Top ring
         vertices.push_back(x + 0.5f);
@@ -50,6 +54,8 @@ void initCylinderBuffers(int sectors = 36)
         vertices.push_back(nx);
         vertices.push_back(0.0f);
         vertices.push_back(nz);
+        vertices.push_back(u);    // u
+        vertices.push_back(1.0f); // v = top
     }
 
     // Side indices
@@ -70,7 +76,7 @@ void initCylinderBuffers(int sectors = 36)
     }
 
     // --- Bottom cap ---
-    int bottomCenterIdx = (int)vertices.size() / 6;
+    int bottomCenterIdx = (int)vertices.size() / 8;
     // Center vertex
     vertices.push_back(0.5f);
     vertices.push_back(0.0f);
@@ -78,8 +84,10 @@ void initCylinderBuffers(int sectors = 36)
     vertices.push_back(0.0f);
     vertices.push_back(-1.0f);
     vertices.push_back(0.0f);
+    vertices.push_back(0.5f); // u center
+    vertices.push_back(0.5f); // v center
 
-    int bottomRingStart = (int)vertices.size() / 6;
+    int bottomRingStart = (int)vertices.size() / 8;
     for (int i = 0; i <= sectors; i++)
     {
         float angle = i * sectorStep;
@@ -91,6 +99,8 @@ void initCylinderBuffers(int sectors = 36)
         vertices.push_back(0.0f);
         vertices.push_back(-1.0f);
         vertices.push_back(0.0f);
+        vertices.push_back(x); // u = x position
+        vertices.push_back(z); // v = z position
     }
 
     for (int i = 0; i < sectors; i++)
@@ -101,15 +111,17 @@ void initCylinderBuffers(int sectors = 36)
     }
 
     // --- Top cap ---
-    int topCenterIdx = (int)vertices.size() / 6;
+    int topCenterIdx = (int)vertices.size() / 8;
     vertices.push_back(0.5f);
     vertices.push_back(height);
     vertices.push_back(0.5f);
     vertices.push_back(0.0f);
     vertices.push_back(1.0f);
     vertices.push_back(0.0f);
+    vertices.push_back(0.5f); // u center
+    vertices.push_back(0.5f); // v center
 
-    int topRingStart = (int)vertices.size() / 6;
+    int topRingStart = (int)vertices.size() / 8;
     for (int i = 0; i <= sectors; i++)
     {
         float angle = i * sectorStep;
@@ -121,6 +133,8 @@ void initCylinderBuffers(int sectors = 36)
         vertices.push_back(0.0f);
         vertices.push_back(1.0f);
         vertices.push_back(0.0f);
+        vertices.push_back(x); // u = x position
+        vertices.push_back(z); // v = z position
     }
 
     for (int i = 0; i < sectors; i++)
@@ -144,12 +158,16 @@ void initCylinderBuffers(int sectors = 36)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cylinderEBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
+    int stride = 8 * sizeof(float);
     // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void *)0);
     glEnableVertexAttribArray(0);
     // Normal attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // Texcoord attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void *)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     glBindVertexArray(0);
 }

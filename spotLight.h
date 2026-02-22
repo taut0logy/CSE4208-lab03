@@ -16,22 +16,20 @@ public:
     glm::vec3 diffuse;
     glm::vec3 specular;
     float k_c, k_l, k_q;
-    float cutOff;       // cos of inner angle
-    float outerCutOff;  // cos of outer angle
+    float cutOff;       // cos of cutoff angle (binary: inside = lit, outside = dark)
 
     SpotLight(int num,
               glm::vec3 pos, glm::vec3 dir,
               glm::vec3 amb, glm::vec3 diff, glm::vec3 spec,
               float constant, float linear, float quadratic,
-              float innerDeg, float outerDeg)
+              float cutoffDeg)
     {
         lightNumber = num;
         position    = pos;
         direction   = glm::normalize(dir);
         ambient     = amb;  diffuse = diff;  specular = spec;
         k_c = constant;  k_l = linear;  k_q = quadratic;
-        cutOff      = glm::cos(glm::radians(innerDeg));
-        outerCutOff = glm::cos(glm::radians(outerDeg));
+        cutOff      = glm::cos(glm::radians(cutoffDeg));
     }
 
     void setUpLight(Shader& shader)
@@ -47,7 +45,6 @@ public:
         shader.setFloat(b + "k_l",         k_l);
         shader.setFloat(b + "k_q",         k_q);
         shader.setFloat(b + "cutOff",      cutOff);
-        shader.setFloat(b + "outerCutOff", outerCutOff);
     }
 
     void turnOff() { ambientOn = diffuseOn = specularOn = 0.0f; }
