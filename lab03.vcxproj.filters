@@ -41,6 +41,18 @@
     <ClInclude Include="pointLight.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="cylinder.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sphere.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spotLight.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="directionalLight.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="fragmentShader.fs">

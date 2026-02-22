@@ -138,10 +138,14 @@
   <ItemGroup>
     <ClInclude Include="camera.h" />
     <ClInclude Include="cube.h" />
+    <ClInclude Include="cylinder.h" />
+    <ClInclude Include="directionalLight.h" />
     <ClInclude Include="lab_scene.h" />
     <ClInclude Include="objects.h" />
     <ClInclude Include="pointLight.h" />
     <ClInclude Include="shader.h" />
+    <ClInclude Include="sphere.h" />
+    <ClInclude Include="spotLight.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="fragmentShader.fs" />

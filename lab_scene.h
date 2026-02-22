@@ -2,80 +2,102 @@
 #define LAB_SCENE_H
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/constants.hpp>
 #include "shader.h"
 #include "objects.h"
 
+// -----------------------------------------------------------------------
 // Room dimensions
-const float ROOM_WIDTH = 8.0f;
+// -----------------------------------------------------------------------
+const float ROOM_WIDTH  = 8.0f;
 const float ROOM_HEIGHT = 3.5f;
-const float ROOM_DEPTH = 12.0f;
+const float ROOM_DEPTH  = 12.0f;
 
-// Scene state
+// Hanging lamp positions (exposed so main.cpp can place point lights there)
+const glm::vec3 LAMP1_POS = glm::vec3(ROOM_WIDTH*0.33f, ROOM_HEIGHT-0.30f, ROOM_DEPTH*0.28f);
+const glm::vec3 LAMP2_POS = glm::vec3(ROOM_WIDTH*0.67f, ROOM_HEIGHT-0.30f, ROOM_DEPTH*0.70f);
+
+// Stove mouth position (spot light origin)
+//  The stove sits at x=(W-1.5), z=(D-2.0); mouth is on +Z face at waist height
+const glm::vec3 STOVE_X_CENTER = glm::vec3(ROOM_WIDTH-1.5f, 0.0f, ROOM_DEPTH-2.0f);
+const glm::vec3 STOVE_MOUTH_POS = glm::vec3(
+    ROOM_WIDTH-1.5f,          // x center of stove
+    0.20f,                    // mouth height
+    ROOM_DEPTH-2.0f+0.28f);   // +Z face of cylinder (radius=0.28)
+
+// Street lamp head positions (spot light origins, pointing downward)
+const glm::vec3 SLAMP1_POS = glm::vec3(ROOM_WIDTH*0.5f - 3.0f, 3.8f, ROOM_DEPTH + 4.0f);
+const glm::vec3 SLAMP2_POS = glm::vec3(ROOM_WIDTH*0.5f + 2.5f, 3.8f, ROOM_DEPTH + 4.0f);
+
+// -----------------------------------------------------------------------
+// Scene State
+// -----------------------------------------------------------------------
 struct SceneState {
-    bool pointLightsOn = true;
-    bool ambientOn = true;
-    bool diffuseOn = true;
-    bool specularOn = true;
-    
-    // Door/Window animation
-    bool doorOpening = false;
-    bool windowOpening = false;
-    float doorOpenAmount = 0.0f;
+    bool dirLightOn     = true;
+    bool pointLightsOn  = true;
+    bool spotLightsOn   = true;    // controls ALL spot lights together
+    bool ambientOn      = true;
+    bool diffuseOn      = true;
+    bool specularOn     = true;
+
+    bool  doorOpening      = false;
+    float doorOpenAmount   = 0.0f;
+    bool  windowOpening    = false;
     float windowOpenAmount = 0.0f;
 };
 
-void updateSceneState(SceneState& state, float deltaTime) {
-    float speed = 1.5f;
-    if (state.doorOpening && state.doorOpenAmount < 1.0f)
-        state.doorOpenAmount += speed * deltaTime;
-    else if (!state.doorOpening && state.doorOpenAmount > 0.0f)
-        state.doorOpenAmount -= speed * deltaTime;
-    state.doorOpenAmount = glm::clamp(state.doorOpenAmount, 0.0f, 1.0f);
-    
-    if (state.windowOpening && state.windowOpenAmount < 1.0f)
-        state.windowOpenAmount += speed * deltaTime;
-    else if (!state.windowOpening && state.windowOpenAmount > 0.0f)
-        state.windowOpenAmount -= speed * deltaTime;
-    state.windowOpenAmount = glm::clamp(state.windowOpenAmount, 0.0f, 1.0f);
+void updateSceneState(SceneState& s, float dt) {
+    auto step = [&](bool opening, float& amt) {
+        if  (opening && amt < 1.0f) amt += 1.4f * dt;
+        if (!opening && amt > 0.0f) amt -= 1.4f * dt;
+        amt = glm::clamp(amt, 0.0f, 1.0f);
+    };
+    step(s.doorOpening,   s.doorOpenAmount);
+    step(s.windowOpening, s.windowOpenAmount);
 }
 
+// -----------------------------------------------------------------------
+// Draw everything
+// -----------------------------------------------------------------------
 void drawBarracksScene(Shader& shader, glm::mat4 parent, SceneState& state) {
-    // Floor
-    drawFloor(shader, parent, ROOM_WIDTH, ROOM_DEPTH);
-    
-    // Walls
-    drawWalls(shader, parent, ROOM_WIDTH, ROOM_HEIGHT, ROOM_DEPTH);
-    
-    // Ceiling
+    // ---- Interior ----
+    drawFloor  (shader, parent, ROOM_WIDTH, ROOM_DEPTH);
+    drawWalls  (shader, parent, ROOM_WIDTH, ROOM_HEIGHT, ROOM_DEPTH);
     drawCeiling(shader, parent, ROOM_WIDTH, ROOM_HEIGHT, ROOM_DEPTH);
-    
-    // Door (back wall center)
-    float doorX = (ROOM_WIDTH - 1.0f) / 2.0f;
-    float doorAngle = state.doorOpenAmount * 90.0f;
-    drawDoor(shader, parent, doorX, 0.0f, ROOM_DEPTH - 0.2f, doorAngle);
-    
-    // Window (left wall)
-    drawWindow(shader, parent, 0.0f, 1.2f, ROOM_DEPTH * 0.3f, state.windowOpenAmount);
-    
-    // Bunk beds - Left side (3 beds)
+    drawRoof   (shader, parent, ROOM_WIDTH, ROOM_HEIGHT, ROOM_DEPTH);
+
+    // Door (back wall, centre)
+    float doorX = (ROOM_WIDTH - 1.0f) * 0.5f;
+    drawDoor   (shader, parent, doorX, 0.0f, ROOM_DEPTH-0.16f, state.doorOpenAmount * 90.0f);
+
+    // Windows (left wall)
+    float wZ1 = 1.2f, wZ2 = ROOM_DEPTH - 1.2f - 1.1f;
+    drawWindow(shader, parent, 0.0f, 1.10f, wZ1, state.windowOpenAmount);
+    drawWindow(shader, parent, 0.0f, 1.10f, wZ2, state.windowOpenAmount);
+
+    // Bunk beds – 3 rows, both sides
     for (int i = 0; i < 3; i++) {
-        float zPos = 0.5f + i * 3.5f;
-        drawBunkBed(shader, parent, 0.3f, 0.0f, zPos);
+        float zPos = 0.4f + i * 3.7f;
+        drawBunkBed(shader, parent, 0.30f,             0.0f, zPos);
+        drawBunkBed(shader, parent, ROOM_WIDTH - 1.40f, 0.0f, zPos);
     }
-    
-    // Bunk beds - Right side (3 beds)
-    for (int i = 0; i < 3; i++) {
-        float zPos = 0.5f + i * 3.5f;
-        drawBunkBed(shader, parent, ROOM_WIDTH - 1.3f, 0.0f, zPos);
-    }
-    
-    // Stove (center-back)
-    drawStove(shader, parent, ROOM_WIDTH / 2.0f, 0.0f, ROOM_DEPTH - 2.5f);
-    
+
+    // Stove
+    drawStove(shader, parent,
+              STOVE_X_CENTER.x, STOVE_X_CENTER.y, STOVE_X_CENTER.z,
+              ROOM_HEIGHT);
+
     // Hanging lamps
-    float lampY = ROOM_HEIGHT - 0.1f;
-    drawHangingLamp(shader, parent, ROOM_WIDTH / 3.0f, lampY, ROOM_DEPTH / 3.0f);
-    drawHangingLamp(shader, parent, 2.0f * ROOM_WIDTH / 3.0f, lampY, 2.0f * ROOM_DEPTH / 3.0f);
+    drawHangingLamp(shader, parent, LAMP1_POS.x, LAMP1_POS.y, LAMP1_POS.z);
+    drawHangingLamp(shader, parent, LAMP2_POS.x, LAMP2_POS.y, LAMP2_POS.z);
+
+    // ---- Exterior ----
+    drawExterior(shader, parent, ROOM_WIDTH, ROOM_DEPTH);
+
+    // Street lamps (just visual objects; spot light is set up in main.cpp)
+    drawStreetLamp(shader, parent, SLAMP1_POS.x - 0.55f, 0.0f, SLAMP1_POS.z - 0.20f);
+    drawStreetLamp(shader, parent, SLAMP2_POS.x - 0.55f, 0.0f, SLAMP2_POS.z - 0.20f);
 }
 
 #endif
