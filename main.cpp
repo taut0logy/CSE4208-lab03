@@ -47,6 +47,7 @@ Camera camera(
 
 // ---- Scene state ----
 SceneState sceneState;
+bool texturesEnabled = true;
 
 // ---- Lights ----
 
@@ -127,7 +128,7 @@ float deltaTime = 0.0f, lastFrame = 0.0f;
 
 // ---- Key debounce ----
 bool k1=false, k2=false, k3=false, k5=false, k6=false, k7=false;
-bool kO=false, kP=false;
+bool kO=false, kP=false, kT=false;
 
 // =====================================================================
 int main()
@@ -251,6 +252,7 @@ int main()
             shader.setMat4("view",       vp.view);
             shader.setMat4("projection", glm::perspective(glm::radians(vp.fov), aspect, 0.1f, 150.0f));
             shader.setVec3("viewPos",    vp.eye);
+            texturesEnabled = sceneState.texturesOn; // SYNC GLOBAL
             drawBarracksScene(shader, I, sceneState);
         }
 
@@ -293,6 +295,7 @@ void processInput(GLFWwindow* window)
     tog(GLFW_KEY_7, k7, sceneState.specularOn);
     tog(GLFW_KEY_O, kO, sceneState.doorOpening);
     tog(GLFW_KEY_P, kP, sceneState.windowOpening);
+    tog(GLFW_KEY_T, kT, sceneState.texturesOn);
 }
 
 void framebuffer_size_callback(GLFWwindow*, int w, int h) {
@@ -319,8 +322,9 @@ void printControls() {
     cout << "  Scroll       : Forward/backward\n";
     cout << "\n  1  : Directional light (dawn sun)\n";
     cout << "  2  : Point lights (lamps + street)\n";
-    cout << "  3  : Spot lights (stove + street cones)\n";
-    cout << "  5  : Ambient component\n";
+    cout << "  3  : Spot lights (stove fire + street lamps)\n";
+    cout << "  T  : Toggle Textures (enable/disable)\n";
+    cout << "  5  : Ambient component toggle\n";
     cout << "  6  : Diffuse component\n";
     cout << "  7  : Specular component\n";
     cout << "\n  O  : Open / close door\n";

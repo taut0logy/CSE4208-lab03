@@ -54,13 +54,16 @@ void initTextures() {
     texFloor  = loadTexture("textures/floor.jpg");
 }
 
+// Global flag for texture toggle (updated from main)
+extern bool texturesEnabled; 
+
 // Bind a texture and enable it in shader
 void bindTex(Shader& shader, unsigned int texID, float repeat = 1.0f) {
     shader.use();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texID);
     shader.setInt("texture1", 0);
-    shader.setBool("useTexture", true);
+    shader.setBool("useTexture", texturesEnabled);
     shader.setFloat("texRepeat", repeat);
 }
 
@@ -412,10 +415,6 @@ void drawExterior(Shader& shader, glm::mat4 parent,
         drawCuboidSimple(shader, parent, cx, dashY, dz, 0.12f, 0.01f, dashLen, COLOR_ROAD_LINE, 8.0f);
 }
 
-// -----------------------------------------------------------------------
-// Showcase objects: textured cylinder (brick) + textured sphere (wood)
-//   Placed inside the barracks to demonstrate texture on curved surfaces
-// -----------------------------------------------------------------------
 void drawShowcaseObjects(Shader& shader, glm::mat4 parent,
                          float roomW, float roomDepth) {
     // --- Brick-textured cylinder (decorative column/barrel) ---
@@ -440,4 +439,3 @@ void drawShowcaseObjects(Shader& shader, glm::mat4 parent,
 }
 
 #endif
-

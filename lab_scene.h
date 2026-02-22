@@ -45,6 +45,7 @@ struct SceneState {
     float doorOpenAmount   = 0.0f;
     bool  windowOpening    = false;
     float windowOpenAmount = 0.0f;
+    bool  texturesOn       = true;
 };
 
 void updateSceneState(SceneState& s, float dt) {
