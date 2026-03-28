@@ -22,7 +22,7 @@
 #include "pointLight.h"
 #include "directionalLight.h"
 #include "spotLight.h"
-#include "lab_scene.h"
+#include "scene.h"
 
 using namespace std;
 
