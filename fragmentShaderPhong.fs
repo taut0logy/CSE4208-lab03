@@ -57,6 +57,7 @@ uniform SpotLight  spotLights[NR_SPOT_LIGHTS];
 uniform sampler2D texture1;
 uniform bool      useTexture;
 uniform float     texRepeat;
+uniform float     textureBlend;
 
 // ---- lighting functions ----
 
@@ -113,8 +114,9 @@ void main()
     if (useTexture) {
         vec2 tc = TexCoord * texRepeat;
         vec3 texColor = texture(texture1, tc).rgb;
-        matAmb  = texColor * 0.4;        // texture tints ambient
-        matDiff = texColor;              // texture replaces diffuse
+        float blend = clamp(textureBlend, 0.0, 1.0);
+        matAmb  = mix(material.ambient, texColor * 0.4, blend);
+        matDiff = mix(material.diffuse, texColor, blend);
         // specular stays from material
     }
 

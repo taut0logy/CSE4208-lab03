@@ -46,6 +46,7 @@ struct SceneState {
     bool  windowOpening    = false;
     float windowOpenAmount = 0.0f;
     bool  texturesOn       = true;
+    float textureBlend     = 1.0f; // 0 = object color only, 1 = full texture color
 };
 
 void updateSceneState(SceneState& s, float dt) {

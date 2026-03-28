@@ -164,6 +164,7 @@ int main()
     shader.setBool("useTexture", false);
     shader.setFloat("texRepeat", 1.0f);
     shader.setInt("texture1", 0);
+    shader.setFloat("textureBlend", sceneState.textureBlend);
 
     printControls();
 
@@ -183,6 +184,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         shader.use();
+        shader.setFloat("textureBlend", sceneState.textureBlend);
 
         // Helper lambdas to apply component toggles  
         auto applyComp = [&](auto& L) {
@@ -296,6 +298,13 @@ void processInput(GLFWwindow* window)
     tog(GLFW_KEY_O, kO, sceneState.doorOpening);
     tog(GLFW_KEY_P, kP, sceneState.windowOpening);
     tog(GLFW_KEY_T, kT, sceneState.texturesOn);
+
+    // Texture blending intensity: Up = more texture, Down = more object color
+    const float blendSpeed = 0.8f;
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        sceneState.textureBlend = glm::clamp(sceneState.textureBlend + blendSpeed * deltaTime, 0.0f, 1.0f);
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        sceneState.textureBlend = glm::clamp(sceneState.textureBlend - blendSpeed * deltaTime, 0.0f, 1.0f);
 }
 
 void framebuffer_size_callback(GLFWwindow*, int w, int h) {
@@ -324,6 +333,7 @@ void printControls() {
     cout << "  2  : Point lights (lamps + street)\n";
     cout << "  3  : Spot lights (stove fire + street lamps)\n";
     cout << "  T  : Toggle Textures (enable/disable)\n";
+    cout << "  Up/Down Arrow: Increase/decrease texture blend intensity\n";
     cout << "  5  : Ambient component toggle\n";
     cout << "  6  : Diffuse component\n";
     cout << "  7  : Specular component\n";
